@@ -345,7 +345,7 @@ int bb(void)
 		     "\n"
 		     "1991 - Installed underground hackers OS Linux\n"
 		     "1995 - Headed Action 'koules'\n"
-		     "1996 - Famous troan XaoS to convert all windows instalations\n"
+		     "1996 - Famous trojan XaoS to convert all Windows installations\n"
 		     "       into Linux\n"
 		     "\n"
 		     "1998 - Secret plan to make `Text Windows` system to confuse users\n"

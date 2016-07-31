@@ -23,6 +23,7 @@
 
 #include <ctype.h>
 #include <unistd.h>
+#include <string.h>
 #include "timers.h"
 #include "bb.h"
 #ifdef HAVE_LIBMIKMOD

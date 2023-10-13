@@ -31,9 +31,6 @@
 #else
 #include <stdlib.h>
 #include <stdio.h>
-#ifndef _MAC
-#include <malloc.h>
-#endif
 #ifdef __DJGPP__
 #include "aconfig.dos"
 #else

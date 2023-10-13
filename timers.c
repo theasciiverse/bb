@@ -45,12 +45,9 @@
 #include <time.h>
 #endif
    /*HAVE_TIME_H*/
-#include <malloc.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#ifndef _MAC
-#include <malloc.h>
-#endif
 #ifdef __BEOS__
 #include <OS.h>
 #endif

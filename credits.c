@@ -331,12 +331,12 @@ static void move_starfield(int step)
 	    if (step == 1) {
 		if (s[i].z) {
 		    s[i].x2 = ((((s[i].x - 256) / s[i].z) * aa_imgwidth(context)) >> 8) + aa_imgwidth(context) / 2;
-		    s[i].y2 = ((((s[i].y - 256) / s[i].z) * aa_imgwidth(context) * aa_mmheight(context) / aa_mmwidth(context)) >> 8) + aa_imgheight(context) / 2;
+		    s[i].y2 = (int) ((((long long) ((s[i].y - 256) / s[i].z) * aa_imgwidth(context) * aa_mmheight(context) / aa_mmwidth(context)) >> 8) + aa_imgheight(context) / 2);
 		}
 		while (!(s[i].x2 > -DWIDTH / 3 && s[i].x2 < 4 * DWIDTH / 3 && s[i].y2 > -DHEIGHT / 3 && s[i].y2 < 4 * DHEIGHT / 3 && s[i].z > 0 && s[i].z <= MAXFAR)) {
 		    create_star(i);
 		    s[i].x2 = ((((s[i].x - 256) / s[i].z) * aa_imgwidth(context)) >> 8) + aa_imgwidth(context) / 2;
-		    s[i].y2 = ((((s[i].y - 256) / s[i].z) * aa_imgwidth(context) * aa_mmheight(context) / aa_mmwidth(context)) >> 8) + aa_imgheight(context) / 2;
+		    s[i].y2 = (int) ((((long long) ((s[i].y - 256) / s[i].z) * aa_imgwidth(context) * aa_mmheight(context) / aa_mmwidth(context)) >> 8) + aa_imgheight(context) / 2);
 		}
 	    }
 	    if (mode != STAR) {

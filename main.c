@@ -183,6 +183,7 @@ main (int argc, char *argv[])
 #ifdef HAVE_LIBMIKMOD
   if (bbsound)
     {
+      stop ();			/* frees the song still loaded */
       MikMod_Exit ();
     }
 #endif

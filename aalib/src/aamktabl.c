@@ -13,6 +13,9 @@
 /*#define pow2(i) (abs(i)) */
 #define add(i) if(next[(i)]==(i)&&last!=(i)) {if(last!=-1) next[last]=(i),last=(i); else last=first=(i);}
 #define dist(i1,i2,i3,i4,i5,y1,y2,y3,y4,y5) (2*(pow2((int)(i1)-(int)(y1))+pow2((int)(i2)-(int)(y2))+(pow2((int)(i3)-(int)(y3))+pow2((int)(i4)-(int)(y4))))+1*pow2((int)(i5)-(int)(y5)))
+/* dist() in unsigned arithmetic, wrapping where an int would overflow */
+#define usq(a,b) (((unsigned int) (int) (a) - (unsigned int) (int) (b)) * ((unsigned int) (int) (a) - (unsigned int) (int) (b)))
+#define udist(i1,i2,i3,i4,i5,y1,y2,y3,y4,y5) (2u*(usq(i1,y1)+usq(i2,y2)+(usq(i3,y3)+usq(i4,y4)))+usq(i5,y5))
 #define dist1(i1,i2,i3,i4,i5,y1,y2,y3,y4,y5) ((pow2((int)(i1)-(int)(y1))+pow2((int)(i2)-(int)(y2))+(pow2((int)(i3)-(int)(y3))+pow2((int)(i4)-(int)(y4))))+2*pow2((int)(i5)-(int)(y5)))
 #define pos(i1,i2,i3,i4) (((int)(i1)<<12)+((int)(i2)<<8)+((int)(i3)<<4)+(int)(i4))
 
@@ -69,18 +72,26 @@ unsigned short *aa_mktable(aa_context * c)
 		p3 = (p3 << 4) + p3;
 		p4 = (p4 << 4) + p4;
 		sum = p1 + p2 + p3 + p4;
-		if ((p1=dist(parameters[i].p[0],
+		/* This read (p1 = dist(this char, p1...)) >= (p1 = dist(the
+		   table's char, p1...)) && (p1 != p2 || ...): p1 written twice
+		   with no sequence point between, so the comparison is p1 >= p1,
+		   always true, and the second distance is taken from the first
+		   one's result, which overflows an int. Spelled out the way
+		   compilers have always built it, in unsigned arithmetic where
+		   the int overflowed, so the table comes out the same. */
+		unsigned int d = udist(parameters[i].p[0],
 			 parameters[i].p[1],
 			 parameters[i].p[2],
 			 parameters[i].p[3],
 			 parameters[i].p[4],
-			 p1, p2, p3, p4, sum)) >=
-		    (p1=dist(parameters[table[pos]].p[0],
+			 p1, p2, p3, p4, sum);
+		p1 = (int) udist(parameters[table[pos]].p[0],
 			 parameters[table[pos]].p[1],
 			 parameters[table[pos]].p[2],
 			 parameters[table[pos]].p[3],
 			 parameters[table[pos]].p[4],
-			 p1, p2, p3, p4, sum))&&(p1!=p2||priority[i/256]<=priority[table[pos]/256]))
+			 (int) d, p2, p3, p4, sum);
+		if (p1!=p2||priority[i/256]<=priority[table[pos]/256])
 		    goto skip;
 	    }
 	    table[pos] = i;

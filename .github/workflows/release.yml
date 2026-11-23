@@ -1,0 +1,164 @@
+# Builds BB, the AA project's text-mode demo, for the Asciiverse catalog
+# and as system packages.
+#
+# For av: one archive per target, named bb-<target>.tar.gz (.zip for
+# Windows), plus a SHA256SUMS file, attached to a GitHub release
+# (hub/catalog/SCHEMA.md, release.source = "github"). Each archive holds
+# BB, its three songs beside it, the licences, README.md and PATCHES.md.
+# For everyone else: .deb, .rpm and Arch packages from the same Linux
+# build, made by nfpm (asciiverse/nfpm.yaml).
+#
+# Tags look like v1.3rc1-av.1: upstream's version, then our packaging
+# release. AAlib and libmikmod are built from source and linked in
+# (asciiverse/build.sh). Linux builds on the oldest runner with ncurses
+# linked in, so it runs on glibc 2.35 and newer; not static musl, since
+# miniaudio, which plays the music, opens the system's sound library at
+# run time. macOS builds natively on a runner of each architecture;
+# Windows is cross-built with mingw-w64 on PDCurses.
+
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "existing tag to build and release"
+        required: true
+
+env:
+  ID: bb
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-unknown-linux-gnu, runner: ubuntu-22.04, arch: amd64 }
+          - { target: aarch64-unknown-linux-gnu, runner: ubuntu-22.04-arm, arch: arm64 }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Build
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q libncurses-dev
+          sh asciiverse/build.sh
+          file bb
+          ldd bb
+
+      - name: Smoke test (no sound device, no real state folder)
+        run: |
+          export TERM=xterm-256color XDG_STATE_HOME="$RUNNER_TEMP/state" AV_AUDIO_DUMP="$RUNNER_TEMP/dump.raw"
+          sh asciiverse/stage.sh
+          script -qec "timeout 40 stage/bb" /dev/null >/dev/null || true
+          cat "$RUNNER_TEMP/state/bb/bb.log"
+          grep -q "song bb.s3m" "$RUNNER_TEMP/state/bb/bb.log"
+          test -s "$RUNNER_TEMP/dump.raw"
+
+      - name: Package for av
+        run: |
+          sh asciiverse/stage.sh
+          mkdir -p dist
+          tar -czf "dist/$ID-${{ matrix.target }}.tar.gz" -C stage .
+
+      - name: System packages
+        run: |
+          v="${TAG#v}"; export VERSION="${v%%-av.*}" RELEASE="${v##*-av.}" ARCH="${{ matrix.arch }}"
+          for p in deb rpm archlinux; do
+            docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/src -w /src \
+              -e VERSION -e RELEASE -e ARCH goreleaser/nfpm:v2.43.0 \
+              package --config asciiverse/nfpm.yaml --packager "$p" --target dist/
+          done
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: dist/*
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: aarch64-apple-darwin, runner: macos-15 }
+          - { target: x86_64-apple-darwin, runner: macos-15-intel }
+    runs-on: ${{ matrix.runner }}
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Build
+        run: |
+          sh asciiverse/build.sh
+          file bb
+          otool -L bb
+
+      - name: Package
+        run: |
+          sh asciiverse/stage.sh
+          mkdir -p dist
+          tar -czf "dist/$ID-${{ matrix.target }}.tar.gz" -C stage .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: dist/*
+
+  windows:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Build
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q mingw-w64
+          TARGET=windows sh asciiverse/build.sh
+          file bb.exe
+
+      - name: Package
+        run: |
+          sh asciiverse/stage.sh bb.exe
+          mkdir -p dist
+          (cd stage && zip -q -r "../dist/$ID-x86_64-pc-windows-msvc.zip" .)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: x86_64-pc-windows-msvc
+          path: dist/*
+
+  release:
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum * > SHA256SUMS && cat SHA256SUMS
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$TAG" -R "$GITHUB_REPOSITORY" --title "BB $TAG" \
+                 --notes "BB ${TAG%%-av.*}, the AA project's demo made of text, with its music, built for the Asciiverse catalog, with .deb, .rpm and Arch packages. See PATCHES.md."
+          gh release upload "$TAG" dist/* -R "$GITHUB_REPOSITORY" --clobber

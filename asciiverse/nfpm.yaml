@@ -1,0 +1,56 @@
+# System packages (.deb, .rpm, Arch) for BB, built by nfpm from the same
+# Linux build as the av archive. The release workflow sets VERSION,
+# RELEASE (our packaging release) and ARCH (amd64 or arm64).
+#
+# BB and its songs go to /usr/lib/bb, where it finds the songs beside
+# itself; /usr/bin/bb links to it. Debian and Ubuntu name their own BB
+# package bb, so these conflict with it.
+# No .desktop file on purpose: av is the one place titles are started from,
+# so Asciiverse packages never add menu entries.
+name: bb
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+release: ${RELEASE}
+section: games
+priority: optional
+maintainer: Asciiverse <packages@asciiverse.sh>
+vendor: Asciiverse
+homepage: https://github.com/theasciiverse/bb
+license: GPL-2.0-or-later AND LGPL-2.0-or-later
+conflicts:
+  - bb
+description: |
+  The AA project's demo, made entirely of text characters.
+  BB (1997 to 2001) by Filip Kupsa, Jan Hubicka, Mojmir Svoboda and Kamil
+  Toman shows off AAlib, the ASCII art library: zooming fractals, a 3D
+  torus, fire, scrolling messages and a story, with its own music played
+  through MikMod. Packaged by Asciiverse.
+contents:
+  - src: stage/bb
+    dst: /usr/lib/bb/bb
+    file_info: { mode: 0755 }
+  - src: /usr/lib/bb/bb
+    dst: /usr/bin/bb
+    type: symlink
+  - src: stage/bb.s3m
+    dst: /usr/lib/bb/bb.s3m
+  - src: stage/bb2.s3m
+    dst: /usr/lib/bb/bb2.s3m
+  - src: stage/bb3.s3m
+    dst: /usr/lib/bb/bb3.s3m
+  - src: COPYING
+    dst: /usr/share/doc/bb/copyright
+    file_info: { mode: 0644 }
+  - src: stage/COPYING.AAlib
+    dst: /usr/share/doc/bb/COPYING.AAlib
+    file_info: { mode: 0644 }
+  - src: stage/COPYING.MikMod
+    dst: /usr/share/doc/bb/COPYING.MikMod
+    file_info: { mode: 0644 }
+  - src: README.md
+    dst: /usr/share/doc/bb/README.md
+    file_info: { mode: 0644 }
+  - src: PATCHES.md
+    dst: /usr/share/doc/bb/PATCHES.md
+    file_info: { mode: 0644 }

@@ -27,7 +27,8 @@ aa_renderparams *aa_getrenderparams(void)
     return (p);
 }
 #define MYLONG_MAX 0xffffffffU     /*this is enought for me. */
-#define myrand() (state = ((state * 1103515245) + 12345) & MYLONG_MAX)
+/* the generator wraps in unsigned arithmetic, as the int it used did */
+#define myrand() (state = (int) ((((unsigned int) state * 1103515245U) + 12345U) & MYLONG_MAX))
 
 void aa_renderpalette(aa_context * c, __AA_CONST aa_palette palette, __AA_CONST aa_renderparams * p, int x1, int y1, int x2, int y2)
 {

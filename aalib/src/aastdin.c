@@ -1,4 +1,5 @@
 #include "config.h"
+#ifndef _WIN32 /* select() on stdin is POSIX only */
 #include <string.h>
 #include <stdio.h>
 #include <signal.h>
@@ -108,3 +109,4 @@ __AA_CONST struct aa_kbddriver kbd_stdin_d =
     stdin_uninit,
     stdin_getchar,
 };
+#endif

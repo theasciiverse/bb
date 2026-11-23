@@ -24,7 +24,9 @@ __AA_CONST struct aa_kbddriver * __AA_CONST aa_kbddrivers[] =
     &kbd_os2_d,
 #endif
 #endif
+#ifndef _WIN32
     &kbd_stdin_d,
+#endif
     NULL
 };
 int aa_autoinitkbd(struct aa_context *context, int mode)

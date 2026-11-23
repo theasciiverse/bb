@@ -349,7 +349,6 @@ int bb(void)
 		     "       into Linux\n"
 		     "\n"
 		     "1998 - Secret plan to make `Text Windows` system to confuse users\n"
-		 "2001 - Planning an assassination of dictator Bill G.\n"
 		     "\n"
 		     "Contact address: hubicka@paru.cas.cz");
 	    aa_resize (context);

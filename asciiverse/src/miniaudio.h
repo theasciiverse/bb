@@ -45567,7 +45567,7 @@ static MA_INLINE void ma_pcm_s16_to_s32__reference(void* dst, const void* src, m
 
     ma_uint64 i;
     for (i = 0; i < count; i += 1) {
-        dst_s32[i] = (ma_int32)src_s16[i] << 16;
+        dst_s32[i] = (ma_int32)src_s16[i] * 65536;  /* Asciiverse: was << 16, undefined for negative samples */
     }
 
     (void)ditherMode;

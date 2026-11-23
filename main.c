@@ -29,6 +29,7 @@
 #ifdef HAVE_LIBMIKMOD
 #include <mikmod.h>
 #include "av_sound.h"
+#include "av_util.h"
 MODULE *module;
 int bbsound;
 void stop();
@@ -51,13 +52,25 @@ load_song (char *name)
   finish_stuff = 0;
   if (bbsound)
     {
-      char *name2;
-      name2 = malloc (strlen (name) + strlen(SOUNDDIR)+2);
-      sprintf(name2, "%s/%s",SOUNDDIR, name);
+      /* the songs are beside the program (where the Asciiverse
+         package puts them), else in SOUNDDIR where a system
+         install put them, else in the current folder */
+      const char *dir = av_exe_dir ();
+      char *name2 = malloc (strlen (name) + strlen (dir) + 2);
+      sprintf (name2, "%s%s", dir, name);
       stop ();
       if (module != NULL)
 	Player_Free (module);
       module = Player_Load (name2, 64, 0);
+#ifdef SOUNDDIR
+      if (!module)
+	{
+	  free (name2);
+	  name2 = malloc (strlen (name) + strlen (SOUNDDIR) + 2);
+	  sprintf (name2, "%s/%s", SOUNDDIR, name);
+	  module = Player_Load (name2, 64, 0);
+	}
+#endif
       if (!module)
         module = Player_Load (name, 64, 0);
       free (name2);

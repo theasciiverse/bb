@@ -178,8 +178,8 @@ static void optfsp(unsigned wh)
     m3 = polyg[wh][c].y - polyg[wh][b].y;
 
     if (m1) {
-	d1 = ((polyg[wh][c].x - polyg[wh][a].x) << 16) / m1;
-	x1 = polyg[wh][a].x << 16;
+	d1 = ((polyg[wh][c].x - polyg[wh][a].x) * 65536) / m1;
+	x1 = polyg[wh][a].x * 65536;
 	n1Dx = (rot[wh][c].n_x - rot[wh][a].n_x) / m1;
 	n1x = rot[wh][a].n_x;
 	n1Dy = (rot[wh][c].n_y - rot[wh][a].n_y) / m1;
@@ -190,8 +190,8 @@ static void optfsp(unsigned wh)
 
 	ii = 0;
 	if (m2) {
-	    d2 = ((polyg[wh][b].x - polyg[wh][a].x) << 16) / m2;
-	    x2 = polyg[wh][a].x << 16;
+	    d2 = ((polyg[wh][b].x - polyg[wh][a].x) * 65536) / m2;
+	    x2 = polyg[wh][a].x * 65536;
 	    n2Dx = (rot[wh][b].n_x - rot[wh][a].n_x) / m2;
 	    n2x = rot[wh][a].n_x;
 	    n2Dy = (rot[wh][b].n_y - rot[wh][a].n_y) / m2;
@@ -216,8 +216,8 @@ static void optfsp(unsigned wh)
 	    }
 	}
 	if (m3) {
-	    d2 = ((polyg[wh][c].x - polyg[wh][b].x) << 16) / m3;
-	    x2 = polyg[wh][b].x << 16;
+	    d2 = ((polyg[wh][c].x - polyg[wh][b].x) * 65536) / m3;
+	    x2 = polyg[wh][b].x * 65536;
 	    n2Dx = (rot[wh][c].n_x - rot[wh][b].n_x) / m3;
 	    n2x = rot[wh][b].n_x;
 	    n2Dy = (rot[wh][c].n_y - rot[wh][b].n_y) / m3;
@@ -250,9 +250,9 @@ static void show(void)
     unsigned i, j;
     for (i = 0; i < nFaces; i++)
 	for (j = 0; j < 3; j++) {
-	    polyg[i][j].x = ((rot[i][j].x << 8) / (256 + rot[i][j].z)) * XRATIO + X_S;
-	    polyg[i][j].y = ((rot[i][j].y << 8) / (256 + rot[i][j].z)) * YRATIO + Y_S;
-	    polyg[i][j].z = rot[i][j].z << 16;
+	    polyg[i][j].x = ((rot[i][j].x * 256) / (256 + rot[i][j].z)) * XRATIO + X_S;
+	    polyg[i][j].y = ((rot[i][j].y * 256) / (256 + rot[i][j].z)) * YRATIO + Y_S;
+	    polyg[i][j].z = rot[i][j].z * 65536;
 	}
     for (i = 0; i < nFaces; i++) {
 	ZZ = (polyg[i][2].x - polyg[i][0].x) * (polyg[i][1].y - polyg[i][0].y) -

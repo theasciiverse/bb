@@ -43,8 +43,8 @@ aa_context *aa_autoinit(__AA_CONST struct aa_hardware_params *params)
 	    }
 	    if (aa_drivers[i] == NULL)
 		printf("Driver %s unknown", t);
-	    free(t);
 	}
+	free(t);
     }
     i = 0;
     while (context == NULL) {

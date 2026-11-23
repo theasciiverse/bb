@@ -44,8 +44,8 @@ int aa_autoinitkbd(struct aa_context *context, int mode)
 	    }
 	    if (aa_kbddrivers[i] == NULL)
 		printf("Driver %s unknown", t);
-	    free(t);
 	}
+	free(t);
     }
     i = 0;
     if (!ok)

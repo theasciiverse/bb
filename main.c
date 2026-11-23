@@ -74,6 +74,10 @@ load_song (char *name)
       if (!module)
         module = Player_Load (name, 64, 0);
       free (name2);
+      if (module)
+	av_log ("song %s", name);
+      else
+	av_log ("song %s: %s", name, MikMod_strerror (MikMod_errno));
       if (module == NULL)
 	{
 	  aa_printf (context, 0, 0, AA_SPECIAL,
@@ -143,7 +147,12 @@ main (int argc, char *argv[])
   argc = j;
   argv[argc] = NULL;
 
+  av_log_open ();
+  for (i = 1; i < argc; i++)
+    av_log ("argument %s", argv[i]);
   bbinit (argc, argv);
+  av_log ("display: AAlib %s driver, %ix%i", context->driver->shortname,
+	  aa_scrwidth (context), aa_scrheight (context));
 #ifdef HAVE_LIBMIKMOD
   if (!nosound)
     {
@@ -163,7 +172,11 @@ main (int argc, char *argv[])
 	  bbsound = 0;
 	  sleep (1);
 	}
+      av_log ("sound: %s", bbsound ? av_sound_backend ()
+	      : MikMod_strerror (MikMod_errno));
     }
+  else
+    av_log ("sound: off (-nosound)");
 #endif
   aa_resize(context);
   retval = bb ();
@@ -173,5 +186,7 @@ main (int argc, char *argv[])
       MikMod_Exit ();
     }
 #endif
+  av_log ("ended");
+  av_log_close ();
   return retval;
 }

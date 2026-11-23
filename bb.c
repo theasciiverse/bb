@@ -38,6 +38,7 @@
 
 #include <aalib.h>
 #include "bb.h"
+#include "av_util.h"
 
 int finish_stuff, starttime, endtime;
 int dual = 0;
@@ -123,10 +124,12 @@ int bbupdate()
     case 's':
     case 'S':
     case AA_BACKSPACE:
+	av_log("key %i: next part", ch);
 	finish_stuff = 1;
 	break;
     case AA_ESC:
     case 'q':
+	av_log("key %i: quit", ch);
 	finish_stuff = 1, quitnow = 1;
     }
     return (ch);

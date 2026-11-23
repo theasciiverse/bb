@@ -28,14 +28,11 @@
 #include "bb.h"
 #ifdef HAVE_LIBMIKMOD
 #include <mikmod.h>
+#include "av_sound.h"
 MODULE *module;
 int bbsound;
 void stop();
 tl_timer *update_timer;
-static int freqs[14] = {
-  5512, 6615, 8000, 9600, 11025, 16000, 18900,
-  22050, 27428, 32000, 33075, 37800, 44100, 48000
-};
 
 static void
 update_sound (void *data)
@@ -114,79 +111,35 @@ stop ()
     }
 #endif
 }
-#ifdef HAVE_LIBMIKMOD
-struct table
-{
-  int v;
-  char *c;
-};
-static struct table stable[] = { {DMODE_16BITS, "16 bit output"},
-{DMODE_STEREO, "Stereo output"},
-{DMODE_SOFT_MUSIC, "Process music via software mixer"},
-{DMODE_HQMIXER, "Use high-quality (slower) software mixer"},
-{DMODE_SURROUND, "Surround sound"},
-{DMODE_INTERP, "Interpolation"},
-{DMODE_REVERSE, "Reverse Stereo"},
-{0, NULL}
-};
-
-int cont;
-int srate;
-void
-ptable ()
-{
-  int i;
-  for (i = 0; stable[i].c; i++)
-    aa_printf (context, 0, i, AA_SPECIAL, "%i:%s - %-40s", i,
-	       md_mode & stable[i].v ? "Yes" : "No ", stable[i].c);
-  aa_printf (context, 0, i, AA_SPECIAL,
-	     "%i:Sample rate: %i                            ", i, md_mixfreq);
-  aa_printf (context, 0, i + 1, AA_SPECIAL,
-	     "%i:Continue                                      ", i + 1);
-  srate = i;
-  cont = i + 1;
-}
-#endif
-
 int
 main (int argc, char *argv[])
 {
   int p = 0;
   int retval;
+  int i, j;
+  int nosound = 0;
+
+  /* -nosound (or --nosound) plays the demo without its music */
+  for (i = j = 1; i < argc; i++)
+    {
+      if (!strcmp (argv[i], "-nosound") || !strcmp (argv[i], "--nosound"))
+	nosound = 1;
+      else
+	argv[j++] = argv[i];
+    }
+  argc = j;
+  argv[argc] = NULL;
 
   bbinit (argc, argv);
 #ifdef HAVE_LIBMIKMOD
-  aa_puts (context, 0, p++, AA_SPECIAL, "Music?[y/N]");
-  aa_flush (context);
-  if (tolower (aa_getkey (context, 1)) == 'y')
+  if (!nosound)
     {
-      MikMod_RegisterAllDrivers ();
+      /* the music starts with the demo, through miniaudio
+         (asciiverse/src/av_sound.c), at CD rate with interpolation */
+      MikMod_RegisterDriver (&drv_av);
       MikMod_RegisterLoader (&load_s3m);
-      /*md_mode |= DMODE_SOFT_MUSIC; */
-      while (1)
-	{
-	  int k;
-          aa_resize(context);
-	  ptable ();
-	  aa_flush (context);
-	  k = aa_getkey (context, 1);
-	  if (k >= '0' && k <= '0' + cont)
-	    {
-	      k -= '0';
-	      if (k == cont)
-		break;
-	      if (k == srate)
-		{
-		  int i;
-		  for (i = 0; i < 14; i++)
-		    if (freqs[i] == md_mixfreq)
-		      break;
-		  md_mixfreq = freqs[(i + 1) % 14];
-		}
-	      if (k < srate)
-		md_mode ^= stable[k].v;
-	    }
-	}
+      md_mixfreq = 44100;
+      md_mode |= DMODE_16BITS | DMODE_STEREO | DMODE_INTERP;
       bbsound = 1;
       if (MikMod_Init (""))
 	{

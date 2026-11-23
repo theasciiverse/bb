@@ -218,7 +218,8 @@ int bbinit(int argc, char **argv)
     if (argc != 1 && (argc != 2 || ((argv[1][0] <= '0' || argv[1][0] > '8') && strcmp(argv[1], "-loop")))) {
 	printf("Usage: bb [aaoptions] [number]\n\n");
 	printf("Options:\n"
-	       "  -loop          play demo in infinite loop\n\n"
+	       "  -loop          play demo in infinite loop\n"
+	       "  -nosound       play it without the music\n\n"
 	       "AAlib options:\n%s\n", aa_help);
 	exit(1);
     }

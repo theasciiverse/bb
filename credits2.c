@@ -35,7 +35,10 @@ static unsigned char *source, *target;
 static void decrand()
 {
     if (STATE < 4000000) {
-	params->randomval = (4000000 - STATE) * 1600 / 4000000;
+	/* (4000000 - STATE) * 1600 overflows an int for the first 2.66
+	   seconds of the part; it wraps here as it always has, so the
+	   noise comes and goes as BB has always shown it */
+	params->randomval = (int) ((unsigned int) (4000000 - STATE) * 1600U) / 4000000;
     }
     else
 	params->randomval = 0;

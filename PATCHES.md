@@ -79,7 +79,12 @@ theasciiverse/xaos, brought over with its history:
   macOS, WASAPI on Windows); without one BB says so and plays on silently.
   `AV_AUDIO_DUMP=<file>` plays to no device and writes the stream to the
   file (raw 16-bit stereo, 44100 Hz), to check the music without
-  listening.
+  listening. The audio thread never waits for MikMod's lock: MikMod holds
+  it while it starts or stops the output (`Player_Start` and `Player_Free`
+  when BB changes songs, `MikMod_Exit` on quitting), and starting or
+  stopping waits for the audio thread, so a waiting callback froze BB on
+  PulseAudio at the change to the second song. When the lock is taken the
+  callback plays one 20 ms period of silence instead.
 - **The music is found beside the program.** BB looked in a folder fixed
   when it was built (`SOUNDDIR`, /usr/share/bb in Debian), then in the
   current folder. It now looks beside its own program file first

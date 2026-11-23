@@ -53,15 +53,36 @@ static int device_ready, null_ready;
 static FILE *dump;
 static volatile int playing;
 
+/*
+ * Takes MikMod's vars lock only if it is free. The audio thread must never
+ * wait for it: MikMod holds it while stopping the output (Player_Free of
+ * the playing song when BB changes songs, MikMod_Exit when it quits), and
+ * stopping the output waits for this thread to leave the callback. A
+ * waiting callback would leave both waiting for good, which froze BB on
+ * the change to its second song. When MikMod is busy, the callback plays
+ * one period (20 ms) of silence instead.
+ */
+static int av_trylock_vars(void)
+{
+#if defined(HAVE_PTHREAD)
+    return pthread_mutex_trylock(&_mm_mutex_vars) == 0;
+#elif defined(_WIN32) || defined(__CYGWIN__)
+    return !_mm_mutex_vars || WaitForSingleObject(_mm_mutex_vars, 0) == WAIT_OBJECT_0;
+#else
+    return 1;
+#endif
+}
+
 static void av_callback(ma_device *dev, void *out, const void *in, ma_uint32 frames)
 {
     ULONG bytes = frames * ma_get_bytes_per_frame(dev->playback.format, dev->playback.channels);
     (void) in;
-    if (!playing) {
+    if (!playing || !av_trylock_vars()) {
         memset(out, 0, bytes);
+        if (dump)
+            fwrite(out, 1, bytes, dump);
         return;
     }
-    MUTEX_LOCK(vars);
     {
         ULONG got = VC_WriteBytes((SBYTE *) out, bytes);
         if (got < bytes)

@@ -156,7 +156,7 @@ static void decaaval(int i)
 
 static void inccolor(int i)
 {
-    colorval = (TIME - starttime) * 256 / (endtime - starttime);
+    colorval = (int) ((unsigned int) (TIME - starttime) * 256U) / (endtime - starttime);
 }
 
 static void incgama(int i)
@@ -172,10 +172,10 @@ static void decgama(int i)
 static void incrandom(int i)
 {
     if (TIME < (endtime + starttime) / 2) {
-	params->randomval = (TIME - starttime) * 256 / (endtime - starttime);
+	params->randomval = (int) ((unsigned int) (TIME - starttime) * 256U) / (endtime - starttime);
     }
     else
-	params->randomval = (endtime - TIME) * 256 / (endtime - starttime);
+	params->randomval = (int) ((unsigned int) (endtime - TIME) * 256U) / (endtime - starttime);
 }
 
 static void pauzicka()

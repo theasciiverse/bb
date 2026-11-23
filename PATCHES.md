@@ -119,6 +119,12 @@ The drawing is AAlib's curses driver, as BB always had it in a terminal:
 plain characters with bold and dim, fitted to the terminal at every part
 of the demo. Apart from the content cleanup above, nothing in the demo
 itself changed.
+- **regparm only on 32-bit x86** (`config.h`). Upstream gives
+  `tl_lookup_timer()`, `tl_reset_timer()` and the fractal formulas the
+  `regparm(3)` calling convention under any GCC-like compiler. It means
+  something only on 32-bit x86: GCC ignores it elsewhere with a warning,
+  and Clang on macOS refuses it ("'regparm' is not valid on this
+  platform"), which stopped both macOS builds of v1.3rc1-av.2.
 
 ## Fixes from others
 

@@ -196,8 +196,9 @@ struct dyn_data {
 #define adddata(n,i) ((((n)<<DSIZES)+(((i)&(DSIZEHMASK)))))
 #define getbest(i) (((size)<<DSIZES)+(i))
 
-/* XXXstroucki operation may be undefined */
-#define PRICE(i,i1) ((((ftmp=((i)-(i1)))*ftmp)*(rangedelta)))
+/* the square of (i)-(i1), as compilers built ((ftmp = (i)-(i1)) * ftmp),
+   which writes and reads ftmp with no sequence point between */
+#define PRICE(i,i1) (((((i)-(i1))*((i)-(i1))))*(rangedelta))
 #define NEWPRICE (FPMUL)
 
 #define NOSETMASK ((unsigned int)0x80000000)
